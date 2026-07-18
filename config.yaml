@@ -1,0 +1,62 @@
+# Gazette Liquidation Radar configuration
+
+location:
+  # Town name or FULL UK postcode (outcodes alone return nothing)
+  centre: "Bedford"
+  radius_miles: 60
+
+# Only alert on these notice types (matched against the Gazette category label)
+notice_types:
+  - "Appointment of Administrators"
+  - "Appointment of Liquidators"
+  - "Resolutions for Winding-up"
+  - "Winding-Up Orders"
+  - "Meetings of Creditors"
+
+# How many days back to scan each run (2 covers weekend gaps + Gazette's publish lag)
+lookback_days: 2
+
+filtering:
+  # Mode "keywords": match industry words in company name / notice text (no extra API key).
+  # Mode "sic": look up each company on Companies House and filter by SIC code
+  #             (needs CH_API_KEY secret - free from developer.company-information.service.gov.uk).
+  # Mode "both": SIC where the lookup succeeds, keyword fallback where it doesn't.
+  mode: "both"
+
+  industry_keywords:
+    - manufactur
+    - engineering
+    - fabricat
+    - machin
+    - precision
+    - packaging
+    - automation
+    - electrical
+    - electronic
+    - plastics
+    - moulding
+    - injection
+    - tooling
+    - foundry
+    - pressing
+    - sheet metal
+    - welding
+    - conveyor
+    - processing
+    - food production
+    - print
+    - textile
+    - assembly
+
+  # SIC code ranges counted as "interesting" (manufacturing 10xxx-33xxx by default,
+  # plus repair/installation of machinery)
+  sic_ranges:
+    - [10000, 33999]
+    - [43210, 43299]   # electrical installation contractors
+    - [46690, 46699]   # wholesale of other machinery
+
+  # Companies matching these words are dropped even if keywords/SIC match
+  exclude_keywords:
+    - recruitment
+    - consulting services
+    - holdings

@@ -1,0 +1,49 @@
+name: Gazette Radar
+
+on:
+  schedule:
+    - cron: "15 6 * * 1-5"   # 06:15 UTC weekdays (Gazette publishes working days)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: radar
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run radar
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          CH_API_KEY: ${{ secrets.CH_API_KEY }}
+        run: python main.py
+
+      - name: Persist dedupe database
+        run: |
+          git config user.name "gazette-radar-bot"
+          git config user.email "actions@users.noreply.github.com"
+          if [ -f radar.db ]; then
+            mv radar.db /tmp/radar.db
+            git fetch origin
+            git reset --hard origin/${GITHUB_REF_NAME}
+            mv /tmp/radar.db radar.db
+            git add radar.db
+            git diff --cached --quiet || git commit -m "update radar db [skip ci]"
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi
