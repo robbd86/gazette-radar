@@ -1,5 +1,5 @@
 name: Gazette Radar
-
+# workflow registration nudge
 on:
   schedule:
     - cron: "15 6 * * 1-5"   # 06:15 UTC weekdays (Gazette publishes working days)
